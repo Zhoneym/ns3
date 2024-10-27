@@ -1,4 +1,4 @@
-name: Build and Install OpenSSH
+name: Build and Package OpenSSH
 
 on:
   push:
@@ -33,13 +33,14 @@ jobs:
         ./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-selinux
         make
 
-    - name: Install OpenSSH
+    - name: Package OpenSSH
       run: |
         cd openssh-9.8p1
-        sudo make install
+        make install DESTDIR=$GITHUB_WORKSPACE/openssh-package
+        tar -czf openssh-9.8p1-package.tar.gz -C $GITHUB_WORKSPACE/openssh-package .
 
-    - name: Verify installation
-      run: |
-        ssh -V
-        sudo systemctl restart sshd
-        sudo systemctl status sshd
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: openssh-9.8p1-package
+        path: openssh-9.8p1-package.tar.gz
