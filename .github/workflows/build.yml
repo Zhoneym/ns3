@@ -13,8 +13,6 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
 
     - name: Install dependencies
       run: |
@@ -36,11 +34,10 @@ jobs:
     - name: Package OpenSSH
       run: |
         cd openssh-9.8p1
-        make install DESTDIR=$GITHUB_WORKSPACE/openssh-package
-        tar -czf openssh-9.8p1-package.tar.gz -C $GITHUB_WORKSPACE/openssh-package .
+        tar -czf openssh-9.8p1-compiled.tar.gz -C . .
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: openssh-9.8p1-package
-        path: openssh-9.8p1-package.tar.gz
+        name: openssh-9.8p1-compiled
+        path: openssh-9.8p1-compiled.tar.gz
