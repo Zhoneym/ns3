@@ -13,8 +13,6 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
 
     - name: Set up dependencies
       run: |
@@ -38,7 +36,7 @@ jobs:
         sudo checkinstall --pkgname=openssh-tests --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
 
     - name: Upload packages
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: openssh-packages
         path: |
