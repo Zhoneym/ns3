@@ -32,25 +32,12 @@ jobs:
         cd openssl-3.0.13
         ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
         make
-        sudo make install
 
-    - name: Update shared libraries
+    - name: Package OpenSSL
       run: |
-        echo '/usr/local/openssl/lib' | sudo tee /etc/ld.so.conf.d/openssl.conf
-        sudo ldconfig
-
-    - name: Verify OpenSSL installation
-      run: |
-        /usr/local/openssl/bin/openssl version
-
-    - name: Setup OpenSSL configuration
-      run: |
-        sudo cp /usr/local/openssl/ssl/openssl.cnf /etc/ssl/
-        sudo cp /usr/local/openssl/lib/engines-3/*.so /usr/lib/x86_64-linux-gnu/engines-3/
-
-    - name: Setup OpenSSL daemon
-      run: |
-        sudo cp /usr/local/openssl/bin/openssl /usr/sbin/
-        sudo systemctl daemon-reload
-        sudo systemctl enable openssl
-        sudo systemctl start openssl
+        tar -czf openssl-3.0.13-compiled.tar.gz openssl-3.0.13
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: openssl-3.0.13-compiled
+        path: openssl-3.0.13-compiled.tar.gz
