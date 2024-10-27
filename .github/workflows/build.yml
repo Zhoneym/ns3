@@ -7,16 +7,14 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
+    - name: Update package list
+      run: sudo apt-get update
 
-    - name: Update and install build-essential and OpenSSL
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential openssl
-
-    - name: Find and copy .deb packages
+    - name: Download build-essential and OpenSSL packages
       run: |
         mkdir -p deb_packages
-        dpkg-query -f '${binary:Package}\n' -W build-essential openssl | xargs -I {} dpkg-query -L {} | grep '\.deb$' | xargs -I {} cp {} deb_packages/
+        apt-get download $(apt-rdepends build-essential openssl | grep -v "^ " | grep -v "^$")
+        mv *.deb deb_packages/
 
     - name: Zip the .deb packages
       run: |
@@ -27,3 +25,4 @@ jobs:
       with:
         name: essential-packages
         path: essential-packages.zip
+
