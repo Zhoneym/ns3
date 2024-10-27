@@ -7,8 +7,6 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
 
     - name: Update and install build-essential and OpenSSL
       run: |
@@ -25,7 +23,7 @@ jobs:
         zip -r essential-packages.zip deb_packages
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: essential-packages
         path: essential-packages.zip
