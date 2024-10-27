@@ -1,4 +1,4 @@
-name: Build OpenSSH
+name: Build OpenSSH Packages
 
 on:
   push:
@@ -13,29 +13,36 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y build-essential fakeroot dpkg-dev
+    - name: Set up dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential fakeroot dpkg-dev debhelper libssl-dev zlib1g-dev
 
     - name: Download OpenSSH source
-      run: wget https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-9.8p1.tar.gz
+      run: |
+        wget https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-9.8p1.tar.gz
+        tar -xzf openssh-9.8p1.tar.gz
+        cd openssh-9.8p1
 
-    - name: Extract source
-      run: tar -xzf openssh-9.8p1.tar.gz
-
-    - name: Build OpenSSH
+    - name: Build OpenSSH packages
       run: |
         cd openssh-9.8p1
         ./configure
         make
+        sudo checkinstall --pkgname=openssh-client --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
+        sudo checkinstall --pkgname=openssh-server --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
+        sudo checkinstall --pkgname=openssh-sftp-server --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
+        sudo checkinstall --pkgname=openssh-tests --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
 
-    - name: Create deb package
-      run: |
-        cd openssh-9.8p1
-        sudo checkinstall --pkgname=openssh --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
-
-    - name: Upload deb package
-      uses: actions/upload-artifact@v4
+    - name: Upload packages
+      uses: actions/upload-artifact@v2
       with:
-        name: openssh-9.8p1.deb
-        path: openssh-9.8p1/openssh_9.8p1-1_amd64.deb
+        name: openssh-packages
+        path: |
+          openssh-client_9.8p1-1_amd64.deb
+          openssh-server_9.8p1-1_amd64.deb
+          openssh-sftp-server_9.8p1-1_amd64.deb
+          openssh-tests_9.8p1-1_amd64.deb
