@@ -36,6 +36,7 @@ jobs:
 
     - name: Update shared libraries
       run: |
+        echo '/usr/local/openssl/lib' | sudo tee /etc/ld.so.conf.d/openssl.conf
         sudo ldconfig
 
     - name: Verify OpenSSL installation
