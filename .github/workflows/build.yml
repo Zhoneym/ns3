@@ -1,4 +1,4 @@
-name: Build and Package OpenSSH
+name: Build and Install OpenSSL
 
 on:
   push:
@@ -13,30 +13,42 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential zlib1g-dev libssl-dev libpam0g-dev libselinux1-dev
+        sudo apt-get install -y build-essential checkinstall zlib1g-dev
 
-    - name: Download OpenSSH source
+    - name: Download OpenSSL
       run: |
-        wget https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-9.8p1.tar.gz
-        tar -xzf openssh-9.8p1.tar.gz
-        cd openssh-9.8p1
+        wget https://www.openssl.org/source/openssl-3.0.13.tar.gz
+        tar -xzvf openssl-3.0.13.tar.gz
+        cd openssl-3.0.13
 
-    - name: Configure and compile OpenSSH
+    - name: Configure and build OpenSSL
       run: |
-        cd openssh-9.8p1
-        ./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-selinux
+        ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
         make
+        sudo make install
 
-    - name: Package OpenSSH
+    - name: Update shared libraries
       run: |
-        tar -czf openssh-9.8p1-compiled.tar.gz openssh-9.8p1
+        sudo ldconfig
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: openssh-9.8p1-compiled
-        path: openssh-9.8p1-compiled.tar.gz
+    - name: Verify OpenSSL installation
+      run: |
+        /usr/local/openssl/bin/openssl version
+
+    - name: Setup OpenSSL configuration
+      run: |
+        sudo cp /usr/local/openssl/ssl/openssl.cnf /etc/ssl/
+        sudo cp /usr/local/openssl/lib/engines-3/*.so /usr/lib/x86_64-linux-gnu/engines-3/
+
+    - name: Setup OpenSSL daemon
+      run: |
+        sudo cp /usr/local/openssl/bin/openssl /usr/sbin/
+        sudo systemctl daemon-reload
+        sudo systemctl enable openssl
+        sudo systemctl start openssl
