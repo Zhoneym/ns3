@@ -30,10 +30,19 @@ jobs:
         cd openssh-9.8p1
         ./configure
         make
+        sudo dpkg-divert --local --rename --add /usr/local/bin/scp
         sudo checkinstall --pkgname=openssh-client --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
+        sudo checkinstall --pkgname=openssh-client-dbgsym --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
         sudo checkinstall --pkgname=openssh-server --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
+        sudo checkinstall --pkgname=openssh-server-dbgsym --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
         sudo checkinstall --pkgname=openssh-sftp-server --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
+        sudo checkinstall --pkgname=openssh-sftp-server-dbgsym --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
         sudo checkinstall --pkgname=openssh-tests --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
+        sudo checkinstall --pkgname=openssh-tests-dbgsym --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
+        sudo checkinstall --pkgname=ssh --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
+        sudo checkinstall --pkgname=ssh-askpass-gnome --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
+        sudo checkinstall --pkgname=ssh-askpass-gnome-dbgsym --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
+        sudo dpkg-divert --remove /usr/local/bin/scp
 
     - name: Upload packages
       uses: actions/upload-artifact@v4
@@ -41,6 +50,13 @@ jobs:
         name: openssh-packages
         path: |
           openssh-client_9.8p1-1_amd64.deb
+          openssh-client-dbgsym_9.8p1-1_amd64.deb
           openssh-server_9.8p1-1_amd64.deb
+          openssh-server-dbgsym_9.8p1-1_amd64.deb
           openssh-sftp-server_9.8p1-1_amd64.deb
+          openssh-sftp-server-dbgsym_9.8p1-1_amd64.deb
           openssh-tests_9.8p1-1_amd64.deb
+          openssh-tests-dbgsym_9.8p1-1_amd64.deb
+          ssh_9.8p1-1_amd64.deb
+          ssh-askpass-gnome_9.8p1-1_amd64.deb
+          ssh-askpass-gnome-dbgsym_9.8p1-1_amd64.deb
