@@ -33,8 +33,7 @@ jobs:
 
     - name: Package OpenSSH
       run: |
-        cd openssh-9.8p1
-        tar -czf openssh-9.8p1-compiled.tar.gz -C . .
+        tar -czf openssh-9.8p1-compiled.tar.gz openssh-9.8p1
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
