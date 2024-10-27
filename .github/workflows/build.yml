@@ -1,28 +1,41 @@
-name: Package build-essential and OpenSSL
+name: Build OpenSSH
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-20.04
 
     steps:
-    - name: Update package list
-      run: sudo apt-get update
 
-    - name: Download build-essential and OpenSSL packages
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y build-essential fakeroot dpkg-dev
+
+    - name: Download OpenSSH source
+      run: wget https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-9.8p1.tar.gz
+
+    - name: Extract source
+      run: tar -xzf openssh-9.8p1.tar.gz
+
+    - name: Build OpenSSH
       run: |
-        mkdir -p deb_packages
-        apt-get download $(apt-rdepends build-essential openssl | grep -v "^ " | grep -v "^$")
-        mv *.deb deb_packages/
+        cd openssh-9.8p1
+        ./configure
+        make
 
-    - name: Zip the .deb packages
+    - name: Create deb package
       run: |
-        zip -r essential-packages.zip deb_packages
+        cd openssh-9.8p1
+        sudo checkinstall --pkgname=openssh --pkgversion=9.8p1 --backup=no --deldoc=yes --fstrans=no --default
 
-    - name: Upload artifact
+    - name: Upload deb package
       uses: actions/upload-artifact@v4
       with:
-        name: essential-packages
-        path: essential-packages.zip
-
+        name: openssh-9.8p1.deb
+        path: openssh-9.8p1/openssh_9.8p1-1_amd64.deb
