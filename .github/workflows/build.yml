@@ -25,10 +25,11 @@ jobs:
       run: |
         wget https://www.openssl.org/source/openssl-3.0.13.tar.gz
         tar -xzvf openssl-3.0.13.tar.gz
-        cd openssl-3.0.13
+        
 
     - name: Configure and build OpenSSL
       run: |
+        cd openssl-3.0.13
         ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
         make
         sudo make install
