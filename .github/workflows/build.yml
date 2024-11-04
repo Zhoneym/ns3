@@ -15,7 +15,6 @@ jobs:
         run: |
           echo 'FROM redis:7.4.1-bookworm' > Dockerfile
           echo 'RUN apt-get update && apt-get install -y keepalived \\' >> Dockerfile
-          echo '    && rm -rf /var/lib/apt/lists/*' >> Dockerfile
           echo 'EXPOSE 6379' >> Dockerfile
           echo 'CMD ["sh", "-c", "redis-server & keepalived -n -D"]' >> Dockerfile
 
