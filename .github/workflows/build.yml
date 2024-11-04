@@ -1,6 +1,9 @@
 name: Build and Package Docker Image
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -9,13 +12,21 @@ jobs:
 
     steps:
 
+      - name: Create Dockerfile
+        run: |
+          echo 'FROM arm64v8/alpine:latest' > Dockerfile
+          echo 'RUN apk add --no-cache redis=7.4.1 keepalived' >> Dockerfile
+          echo 'EXPOSE 6379' >> Dockerfile
+          echo 'CMD ["sh", "-c", "redis-server & keepalived -n -D"]' >> Dockerfile
+
+      - name: Check for Dockerfile
+        run: ls -l
+
       - name: Set up QEMU for ARM emulation
         uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      - name: Check for Dockerfile
-        run: ls -l
 
       - name: Build Docker image for ARM
         run: |
@@ -33,4 +44,3 @@ jobs:
         with:
           name: redis-keepalived
           path: redis-keepalived.tar
-
