@@ -1,47 +1,40 @@
-name: Build and Package Docker Image
+name: Generate Ubuntu 20.04 Rootfs
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04  # 运行 Ubuntu 20.04
 
-    steps:      
-      - name: Create Dockerfile
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Step 2: Install dependencies for debootstrap
+      - name: Install debootstrap
         run: |
-          echo 'FROM redis:7.4.1-bookworm' > Dockerfile
-          echo 'RUN apt-get update -y' >> Dockerfile
-          echo 'RUN apt-get install -y keepalived' >> Dockerfile
-          echo 'EXPOSE 6379' >> Dockerfile
-          echo 'CMD ["sh", "-c", "redis-server /etc/redis.conf & keepalived -n -D"]' >> Dockerfile
+          sudo apt-get update
+          sudo apt-get install -y debootstrap
 
-
-      - name: Check for Dockerfile
-        run: ls -l
-
-      - name: Set up QEMU for ARM emulation
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Build Docker image for ARM
+      # Step 3: Create the Ubuntu 20.04 root filesystem using debootstrap
+      - name: Create Ubuntu 20.04 root filesystem
         run: |
-          docker buildx build --platform linux/arm64 \
-            -t redis-keepalived/redis-keepalived:latest \
-            --load \
-            .
+          sudo mkdir /tmp/ubuntu-rootfs
+          sudo debootstrap --arch=amd64 focal /tmp/ubuntu-rootfs http://archive.ubuntu.com/ubuntu/
 
-      - name: Save Docker image as a tar file
+      # Step 4: Compress the generated rootfs into a tarball
+      - name: Compress root filesystem
         run: |
-          docker save redis-keepalived/redis-keepalived:latest -o redis-keepalived.tar
+          tar -czf /tmp/ubuntu-rootfs.tar.gz -C /tmp ubuntu-rootfs
 
-      - name: Upload tar file as artifact
+      # Step 5: Upload the rootfs tarball as an artifact
+      - name: Upload rootfs tarball
         uses: actions/upload-artifact@v4
         with:
-          name: redis-keepalived
-          path: redis-keepalived.tar
+          name: ubuntu-rootfs
+          path: /tmp/ubuntu-rootfs.tar.gz
+
