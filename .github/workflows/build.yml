@@ -23,7 +23,7 @@ jobs:
 
 
     - name: Save Docker image as tar
-      run: docker save btpanel/baota:9.0_lts_lib -o 9.0_lts_lnmp-arm64.tar
+      run: docker save btpanel/baota:9.0_lts_lnmp -o 9.0_lts_lnmp-arm64.tar
 
     - name: Upload tar to GitHub Artifacts
       uses: actions/upload-artifact@v3
