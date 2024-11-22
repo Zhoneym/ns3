@@ -28,14 +28,17 @@ jobs:
       - name: Set up Debian container
         run: |
           docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-          docker run --name debian-arm64 -dit --platform linux/arm64 debian:bullseye
-          docker exec -it debian-arm64 apt-get update
-          docker exec -it debian-arm64 apt-get install -y wget libfuse2 build-essential zsync
+          docker run --name debian-arm64 -d --platform linux/arm64 debian:bullseye
+
+      # 更新容器内的包管理器并安装必要工具
+      - name: Update and install tools inside container
+        run: |
+          docker exec debian-arm64 bash -c "apt-get update && apt-get install -y wget libfuse2 build-essential zsync dpkg"
 
       # 下载 Chromium 的 ARM64 DEB 包
       - name: Download Chromium deb package
         run: |
-          docker exec -it debian-arm64 bash -c "
+          docker exec debian-arm64 bash -c "
             mkdir -p /workspace && cd /workspace
             wget http://ftp.debian.org/debian/pool/main/c/chromium/chromium_*.deb
           "
@@ -43,8 +46,7 @@ jobs:
       # 提取 deb 包并设置 AppDir 结构
       - name: Extract deb package and set up AppDir
         run: |
-          docker exec -it debian-arm64 bash -c "
-            apt-get install -y dpkg
+          docker exec debian-arm64 bash -c "
             cd /workspace
             dpkg-deb -x chromium_*.deb AppDir
             dpkg-deb -e chromium_*.deb AppDir/DEBIAN
@@ -53,7 +55,7 @@ jobs:
       # 下载 AppImage 工具并生成 AppImage
       - name: Build AppImage
         run: |
-          docker exec -it debian-arm64 bash -c "
+          docker exec debian-arm64 bash -c "
             cd /workspace
             wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-arm64.AppImage
             chmod +x appimagetool-arm64.AppImage
