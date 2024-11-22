@@ -28,7 +28,7 @@ jobs:
       - name: Set up Debian container
         run: |
           docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-          docker run --name debian-arm64 -d --platform linux/arm64 debian:bullseye
+          docker run --name debian-arm64 -d --platform linux/arm64 debian:bullseye sleep infinity
 
       # 更新容器内的包管理器并安装必要工具
       - name: Update and install tools inside container
