@@ -63,9 +63,9 @@ jobs:
         run: |
           docker exec debian-arm64 bash -c "
             cd /workspace &&
-            wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-arm64.AppImage &&
-            chmod +x appimagetool-arm64.AppImage &&
-            ./appimagetool-arm64.AppImage AppDir
+            wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-aarch64.AppImage &&
+            chmod +x appimagetool-aarch64.AppImage &&
+            ./appimagetool-aarch64.AppImage AppDir
           "
 
       # 将生成的 AppImage 上传为 Artifact
