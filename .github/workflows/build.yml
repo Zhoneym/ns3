@@ -45,18 +45,21 @@ jobs:
           yum install -y --downloadonly --downloaddir=/tmp/yum-rpm mssql-server
           "
 
+      - name: Copy RPM Cache from Container to Host
+        run: |
+          docker cp mssql-rocky:/tmp/yum-rpm ./yum-rpm
+
       - name: Create RPM Cache Tarball
         run: |
-          docker exec mssql-rocky bash -c "ls -l /tmp/yum-rpm"
+          ls -l ./yum-rpm
 
       - name: Upload RPM Cache Tarball
         uses: actions/upload-artifact@v4
         with:
           name: mssql-yum-cache
-          path: /tmp/yum-rpm
+          path: ./yum-rpm
 
       - name: Clean Up
         run: |
           docker stop mssql-rocky
           docker rm mssql-rocky
-
