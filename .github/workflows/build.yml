@@ -1,76 +1,73 @@
-name: Build Chromium ARM64 AppImage
+name: Install MSSQL2019 on Rocky Linux 8 and List Installed RPMs
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
-  build:
+  install-mssql:
     runs-on: ubuntu-latest
-
     steps:
-      # 检出代码
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # 设置工作环境
-      - name: Set up environment
+      - name: Pull Rocky Linux 8 Docker Image
         run: |
-          sudo apt-get update
-          sudo apt-get install -y qemu-user-static binfmt-support
-          sudo apt-get install -y libfuse2 build-essential wget
+          docker pull rockylinux:8
 
-      # 拉取并运行 Debian 容器，准备打包环境
-      - name: Set up Debian container
+      - name: Run Rocky Linux 8 Container
         run: |
-          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-          docker run --name debian-arm64 -d --platform linux/arm64 debian:bullseye sleep infinity
+          docker run --name mssql-rocky -d --privileged -t rockylinux:8 /sbin/init
 
-      # 安装 Chromium 和必要工具
-      - name: Install Chromium and tools inside container
+      - name: Update and Install Dependencies
         run: |
-          docker exec debian-arm64 bash -c "
-            apt-get update &&
-            apt-get install -y chromium wget libfuse2 build-essential zsync dpkg
+          docker exec mssql-rocky bash -c "
+          yum update -y &&
+          yum install -y curl wget tar epel-release
           "
 
-      # 设置 AppDir 结构并复制 Chromium 及其依赖
-      - name: Set up AppDir structure and copy Chromium
+      - name: List Installed RPMs after Dependencies Installation
         run: |
-          docker exec debian-arm64 bash -c "
-            mkdir -p /workspace/AppDir &&
-            cp -r /usr/bin /workspace/AppDir/usr &&
-            cp -r /usr/lib /workspace/AppDir/usr &&
-            cp -r /usr/share /workspace/AppDir/usr/share &&
-            cp -r /etc /workspace/AppDir/etc
+          docker exec mssql-rocky bash -c "rpm -qa | sort"
+
+      - name: Install MSSQL Server
+        run: |
+          docker exec mssql-rocky bash -c "
+          yum install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm &&
+          yum install -y mssql-server
           "
 
-      # 创建启动器脚本
-      - name: Create AppImage launcher script
+      - name: List Installed RPMs after MSSQL Server Installation
         run: |
-          docker exec debian-arm64 bash -c "
-            echo '#!/bin/bash' > /workspace/AppDir/AppRun &&
-            echo 'exec /usr/bin/chromium --no-sandbox \"\$@\"' >> /workspace/AppDir/AppRun &&
-            chmod +x /workspace/AppDir/AppRun
+          docker exec mssql-rocky bash -c "rpm -qa | sort"
+
+      - name: Configure MSSQL Server
+        run: |
+          docker exec mssql-rocky bash -c "
+          /opt/mssql/bin/mssql-conf setup --accept-eula --set-sa-password 'YourPassword123' --set-sa-enabled true
           "
 
-      # 下载 AppImage 工具并生成 AppImage
-      - name: Build AppImage
+      - name: List Installed RPMs after MSSQL Configuration
         run: |
-          docker exec debian-arm64 bash -c "
-            cd /workspace &&
-            wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-aarch64.AppImage &&
-            chmod +x appimagetool-aarch64.AppImage &&
-            ./appimagetool-aarch64.AppImage AppDir
+          docker exec mssql-rocky bash -c "rpm -qa | sort"
+
+      - name: Start MSSQL Server
+        run: |
+          docker exec mssql-rocky bash -c "
+          systemctl enable mssql-server &&
+          systemctl start mssql-server
           "
 
-      # 将生成的 AppImage 上传为 Artifact
-      - name: Upload AppImage artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: chromium-arm64.AppImage
-          path: /workspace/chromium-arm64.AppImage
+      - name: List Installed RPMs after MSSQL Server Start
+        run: |
+          docker exec mssql-rocky bash -c "rpm -qa | sort"
+
+      - name: Verify MSSQL Installation
+        run: |
+          docker exec mssql-rocky /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourPassword123' -Q 'SELECT @@VERSION' 
+
+      - name: Clean Up
+        run: |
+          docker stop mssql-rocky
+          docker rm mssql-rocky
