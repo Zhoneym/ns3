@@ -31,6 +31,7 @@ jobs:
           yum install --downloadonly --downloaddir=/tmp/yum-rpm curl wget tar epel-release
           yum install -y curl wget tar epel-release
           "
+          
       - name: Add Microsoft SQL Server Repo
         run: |
           docker exec mssql-rocky bash -c "
@@ -41,8 +42,7 @@ jobs:
       - name: Install MSSQL Server
         run: |
           docker exec mssql-rocky bash -c "
-          yum install -y --downloadonly --downloaddir=/tmp/yum-rpm microsoft-openmpi mssql-mlservices-mlm-py mssql-mlservices-mlm-r mssql-mlservices-packages-py mssql-mlservices-packages-r mssql-mlservices-python mssql-server mssql-server-extensibility mssql-server-extensibility-java mssql-server-fts mssql-server-ha mssql-server-polybase mssql-server-polybase-hadoop mssql-server-sqliosim mssql-server-is
-
+          yum install -y --downloadonly --downloaddir=/tmp/yum-rpm mssql-server
           "
 
       - name: Create RPM Cache Tarball
@@ -59,3 +59,4 @@ jobs:
         run: |
           docker stop mssql-rocky
           docker rm mssql-rocky
+
