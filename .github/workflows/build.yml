@@ -30,7 +30,13 @@ jobs:
           yum update -y &&
           yum install -y curl wget tar epel-release
           "
-
+      - name: Add Microsoft SQL Server Repo
+        run: |
+          docker exec mssql-rocky bash -c "
+          curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/8/mssql-server-2019.repo &&
+          yum makecache
+          "
+          
       - name: Install MSSQL Server
         run: |
           docker exec mssql-rocky bash -c "
