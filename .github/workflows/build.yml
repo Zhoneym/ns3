@@ -27,13 +27,6 @@ jobs:
           yum install -y curl wget tar epel-release
           "
 
-      - name: Download Dependencies RPMs
-        run: |
-          docker exec mssql-rocky bash -c "
-          mkdir -p /root/rpms &&
-          yum install --downloadonly --downloaddir=/root/rpms curl wget tar epel-release
-          "
-
       - name: Add Microsoft SQL Server Repo
         run: |
           docker exec mssql-rocky bash -c "
@@ -41,28 +34,16 @@ jobs:
           yum makecache
           "
 
-      - name: Download RPMs for MSSQL Repo
+      - name: Install MSSQL Server
         run: |
           docker exec mssql-rocky bash -c "
-          yum install --downloadonly --downloaddir=/root/rpms mssql-server
-          "
-
-      - name: Download RPMs for MSSQL Conf Setup
-        run: |
-          docker exec mssql-rocky bash -c "
-          yum install --downloadonly --downloaddir=/root/rpms mssql-tools
+          yum install -y mssql-server
           "
 
       - name: Configure MSSQL Server
         run: |
           docker exec mssql-rocky bash -c "
           /opt/mssql/bin/mssql-conf setup --accept-eula --set-sa-password 'YourPassword123' --set-sa-enabled true
-          "
-
-      - name: Download RPMs After MSSQL Configuration
-        run: |
-          docker exec mssql-rocky bash -c "
-          yum install --downloadonly --downloaddir=/root/rpms mssql-server
           "
 
       - name: Start MSSQL Server
@@ -72,25 +53,19 @@ jobs:
           systemctl start mssql-server
           "
 
-      - name: Download RPMs After MSSQL Server Start
-        run: |
-          docker exec mssql-rocky bash -c "
-          yum install --downloadonly --downloaddir=/root/rpms mssql-server
-          "
-
       - name: Verify MSSQL Installation
         run: |
           docker exec mssql-rocky /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourPassword123' -Q 'SELECT @@VERSION' 
 
-      - name: Create RPM Tarball
+      - name: Create RPM Cache Tarball
         run: |
-          docker exec mssql-rocky bash -c "tar -czf /root/rpms.tar.gz -C /root rpms"
+          docker exec mssql-rocky bash -c "tar -czf /root/yum-cache.tar.gz -C /var/cache/yum/ ."
 
-      - name: Upload RPMs Tarball
-        uses: actions/upload-artifact@v4
+      - name: Upload RPM Cache Tarball
+        uses: actions/upload-artifact@v3
         with:
-          name: mssql-rpms
-          path: /root/rpms.tar.gz
+          name: mssql-yum-cache
+          path: /root/yum-cache.tar.gz
 
       - name: Clean Up
         run: |
