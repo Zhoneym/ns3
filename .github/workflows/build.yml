@@ -41,7 +41,8 @@ jobs:
       - name: Install MSSQL Server
         run: |
           docker exec mssql-rocky bash -c "
-          yum install --downloadonly --downloaddir=/tmp/yum-rpm mssql-server -y
+          yum install -y --downloadonly --downloaddir=/tmp/yum-rpm microsoft-openmpi microsoft-r-open-mkl microsoft-r-open-mro mssql-mlservices-mlm-py mssql-mlservices-mlm-r mssql-mlservices-packages-py mssql-mlservices-packages-r mssql-mlservices-python mssql-server mssql-server-extensibility mssql-server-extensibility-java mssql-server-fts mssql-server-ha mssql-server-polybase mssql-server-polybase-hadoop mssql-server-sqliosim mssql-server-is
+
           "
 
       - name: Create RPM Cache Tarball
