@@ -87,7 +87,7 @@ jobs:
           docker exec mssql-rocky bash -c "tar -czf /root/rpms.tar.gz -C /root rpms"
 
       - name: Upload RPMs Tarball
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mssql-rpms
           path: /root/rpms.tar.gz
