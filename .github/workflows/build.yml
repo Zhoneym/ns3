@@ -22,8 +22,8 @@ jobs:
 
       - name: Set Custom yum Cache Directory
         run: |
-          mkdir -p /yum-cache
-          docker exec mssql-rocky bash -c "echo 'cachedir=/yum-cache' >> /etc/yum.conf"
+          mkdir -p /tmp/yum-cache
+          docker exec mssql-rocky bash -c "echo 'cachedir=/tmp/yum-cache' >> /etc/yum.conf"
 
       - name: Update and Install Dependencies
         run: |
@@ -46,14 +46,14 @@ jobs:
 
       - name: Create RPM Cache Tarball
         run: |
-          docker exec mssql-rocky bash -c "ls -l /yum-cache"
-          docker exec mssql-rocky bash -c "tar -czf /yum-cache.tar.gz -C /yum-cache"
+          docker exec mssql-rocky bash -c "ls -l /tmp/yum-cache"
+          docker exec mssql-rocky bash -c "tar -czf /tmp/yum-cache.tar.gz -C /tmp/yum-cache"
 
       - name: Upload RPM Cache Tarball
         uses: actions/upload-artifact@v4
         with:
           name: mssql-yum-cache
-          path: /root/yum-cache.tar.gz
+          path: /tmp/yum-cache.tar.gz
 
       - name: Clean Up
         run: |
