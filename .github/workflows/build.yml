@@ -1,4 +1,4 @@
-name: Install MSSQL2019 on Rocky Linux 8 and Download RPMs
+name: Install MSSQL2019 on Rocky Linux 8 and Cache RPMs
 
 on:
   push:
@@ -20,18 +20,15 @@ jobs:
         run: |
           docker run --name mssql-rocky -d --privileged -t rockylinux:8 /sbin/init
 
+      - name: Set Custom yum Cache Directory
+        run: |
+          docker exec mssql-rocky bash -c "echo 'cachedir=/root/yum-cache' >> /etc/yum.conf"
+
       - name: Update and Install Dependencies
         run: |
           docker exec mssql-rocky bash -c "
           yum update -y &&
           yum install -y curl wget tar epel-release
-          "
-
-      - name: Add Microsoft SQL Server Repo
-        run: |
-          docker exec mssql-rocky bash -c "
-          curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/8/mssql-server-2019.repo &&
-          yum makecache
           "
 
       - name: Install MSSQL Server
@@ -42,10 +39,10 @@ jobs:
 
       - name: Create RPM Cache Tarball
         run: |
-          docker exec mssql-rocky bash -c "tar -czf /root/yum-cache.tar.gz -C /var/cache/yum/ ."
+          docker exec mssql-rocky bash -c "tar -czf /root/yum-cache.tar.gz -C /root yum-cache"
 
       - name: Upload RPM Cache Tarball
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mssql-yum-cache
           path: /root/yum-cache.tar.gz
