@@ -1,4 +1,4 @@
-name: Install MSSQL2019 on Rocky Linux 8 and List Installed RPMs
+name: Install MSSQL2019 on Rocky Linux 8 and Download RPMs
 
 on:
   push:
@@ -27,22 +27,31 @@ jobs:
           yum install -y curl wget tar epel-release
           "
 
-      - name: Install Microsoft SQL Server Repo
+      - name: Download Dependencies RPMs
         run: |
           docker exec mssql-rocky bash -c "
-          yum install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm &&
+          mkdir -p /root/rpms &&
+          yum install --downloadonly --downloaddir=/root/rpms curl wget tar epel-release
+          "
+
+      - name: Add Microsoft SQL Server Repo
+        run: |
+          docker exec mssql-rocky bash -c "
+          curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/8/mssql-server-2019.repo &&
           yum makecache
           "
 
-      - name: Install MSSQL Server
+      - name: Download RPMs for MSSQL Repo
         run: |
           docker exec mssql-rocky bash -c "
-          yum install -y mssql-server
+          yum install --downloadonly --downloaddir=/root/rpms mssql-server
           "
 
-      - name: List Installed RPMs after MSSQL Server Installation
+      - name: Download RPMs for MSSQL Conf Setup
         run: |
-          docker exec mssql-rocky bash -c "rpm -qa | sort"
+          docker exec mssql-rocky bash -c "
+          yum install --downloadonly --downloaddir=/root/rpms mssql-tools
+          "
 
       - name: Configure MSSQL Server
         run: |
@@ -50,9 +59,11 @@ jobs:
           /opt/mssql/bin/mssql-conf setup --accept-eula --set-sa-password 'YourPassword123' --set-sa-enabled true
           "
 
-      - name: List Installed RPMs after MSSQL Configuration
+      - name: Download RPMs After MSSQL Configuration
         run: |
-          docker exec mssql-rocky bash -c "rpm -qa | sort"
+          docker exec mssql-rocky bash -c "
+          yum install --downloadonly --downloaddir=/root/rpms mssql-server
+          "
 
       - name: Start MSSQL Server
         run: |
@@ -61,13 +72,25 @@ jobs:
           systemctl start mssql-server
           "
 
-      - name: List Installed RPMs after MSSQL Server Start
+      - name: Download RPMs After MSSQL Server Start
         run: |
-          docker exec mssql-rocky bash -c "rpm -qa | sort"
+          docker exec mssql-rocky bash -c "
+          yum install --downloadonly --downloaddir=/root/rpms mssql-server
+          "
 
       - name: Verify MSSQL Installation
         run: |
           docker exec mssql-rocky /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourPassword123' -Q 'SELECT @@VERSION' 
+
+      - name: Create RPM Tarball
+        run: |
+          docker exec mssql-rocky bash -c "tar -czf /root/rpms.tar.gz -C /root rpms"
+
+      - name: Upload RPMs Tarball
+        uses: actions/upload-artifact@v3
+        with:
+          name: mssql-rpms
+          path: /root/rpms.tar.gz
 
       - name: Clean Up
         run: |
