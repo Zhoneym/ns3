@@ -40,19 +40,6 @@ jobs:
           yum install -y mssql-server
           "
 
-      - name: Configure MSSQL Server
-        run: |
-          docker exec mssql-rocky bash -c "
-          /opt/mssql/bin/mssql-conf setup --accept-eula --set-sa-password 'YourPassword123' --set-sa-enabled true
-          "
-
-      - name: Start MSSQL Server
-        run: |
-          docker exec mssql-rocky bash -c "
-          systemctl enable mssql-server &&
-          systemctl start mssql-server
-          "
-
       - name: Verify MSSQL Installation
         run: |
           docker exec mssql-rocky /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourPassword123' -Q 'SELECT @@VERSION' 
