@@ -27,14 +27,16 @@ jobs:
           yum install -y curl wget tar epel-release
           "
 
-      - name: List Installed RPMs after Dependencies Installation
+      - name: Install Microsoft SQL Server Repo
         run: |
-          docker exec mssql-rocky bash -c "rpm -qa | sort"
+          docker exec mssql-rocky bash -c "
+          yum install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm &&
+          yum makecache
+          "
 
       - name: Install MSSQL Server
         run: |
           docker exec mssql-rocky bash -c "
-          yum install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm &&
           yum install -y mssql-server
           "
 
