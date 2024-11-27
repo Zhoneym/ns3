@@ -40,10 +40,6 @@ jobs:
           yum install -y mssql-server
           "
 
-      - name: Verify MSSQL Installation
-        run: |
-          docker exec mssql-rocky /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'YourPassword123' -Q 'SELECT @@VERSION' 
-
       - name: Create RPM Cache Tarball
         run: |
           docker exec mssql-rocky bash -c "tar -czf /root/yum-cache.tar.gz -C /var/cache/yum/ ."
