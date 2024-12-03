@@ -28,7 +28,7 @@ jobs:
       - name: Compress root filesystem
         run: |
           cd base
-          tar cJf ../ubuntu-rootfs.tar.xz *
+          sudo tar cJf ../ubuntu-rootfs.tar.xz *
       # Step 5: Upload the rootfs tarball as an artifact
       - name: Upload rootfs tarball
         uses: actions/upload-artifact@v4
