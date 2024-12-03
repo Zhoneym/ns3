@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # 运行 Ubuntu 20.04
+    runs-on: ubuntu-22.04
 
     steps:
       # Step 1: Checkout repository
@@ -22,16 +22,17 @@ jobs:
       # Step 3: Create the Ubuntu 22.04 root filesystem using debootstrap
       - name: Create Ubuntu 22.04 root filesystem
         run: |
-          sudo mkdir /tmp/ubuntu-rootfs
-          sudo debootstrap --arch=amd64 jammy /tmp/ubuntu-rootfs http://archive.ubuntu.com/ubuntu/
+          sudo mkdir base
+          sudo debootstrap --arch=amd64 jammy base http://archive.ubuntu.com/ubuntu/
       # Step 4: Compress the generated rootfs into a tarball
       - name: Compress root filesystem
         run: |
-          sudo tar -czf /tmp/ubuntu-rootfs.tar.gz -C /tmp ubuntu-rootfs
+          cd base
+          tar cJf ../ubuntu-rootfs.tar.xz *
       # Step 5: Upload the rootfs tarball as an artifact
       - name: Upload rootfs tarball
         uses: actions/upload-artifact@v4
         with:
           name: ubuntu-rootfs
-          path: /tmp/ubuntu-rootfs.tar.gz
+          path: ubuntu-rootfs.tar.xz
 
