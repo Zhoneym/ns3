@@ -1,4 +1,4 @@
-name: Install MSSQL2019 on Rocky Linux 8 and Cache RPMs
+name: Generate Ubuntu 20.04 Rootfs
 
 on:
   push:
@@ -6,60 +6,32 @@ on:
       - main
 
 jobs:
-  install-mssql:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-22.04  # 运行 Ubuntu 20.04
+
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      - name: Pull Rocky Linux 8 Docker Image
+      # Step 2: Install dependencies for debootstrap
+      - name: Install debootstrap
         run: |
-          docker pull rockylinux:8
-
-      - name: Run Rocky Linux 8 Container
+          sudo apt-get update
+          sudo apt-get install -y debootstrap
+      # Step 3: Create the Ubuntu 22.04 root filesystem using debootstrap
+      - name: Create Ubuntu 22.04 root filesystem
         run: |
-          docker run --name mssql-rocky -d --privileged -t rockylinux:8 /sbin/init
-
-      - name: Set Custom yum Cache Directory
+          sudo mkdir /tmp/ubuntu-rootfs
+          sudo debootstrap --arch=amd64 jammy /tmp/ubuntu-rootfs http://archive.ubuntu.com/ubuntu/
+      # Step 4: Compress the generated rootfs into a tarball
+      - name: Compress root filesystem
         run: |
-          mkdir -p /tmp/yum-rpm
-
-      - name: Update and Install Dependencies
-        run: |
-          docker exec mssql-rocky bash -c "
-          yum update -y &&
-          yum install --downloadonly --downloaddir=/tmp/yum-rpm curl wget tar epel-release
-          yum install -y curl wget tar epel-release
-          "
-          
-      - name: Add Microsoft SQL Server Repo
-        run: |
-          docker exec mssql-rocky bash -c "
-          curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/8/mssql-server-2019.repo &&
-          yum makecache
-          "
-          
-      - name: Install MSSQL Server
-        run: |
-          docker exec mssql-rocky bash -c "
-          yum install -y --downloadonly --downloaddir=/tmp/yum-rpm mssql-server
-          "
-
-      - name: Copy RPM Cache from Container to Host
-        run: |
-          docker cp mssql-rocky:/tmp/yum-rpm ./yum-rpm
-
-      - name: Create RPM Cache Tarball
-        run: |
-          ls -l ./yum-rpm
-
-      - name: Upload RPM Cache Tarball
+          sudo tar -czf /tmp/ubuntu-rootfs.tar.gz -C /tmp ubuntu-rootfs
+      # Step 5: Upload the rootfs tarball as an artifact
+      - name: Upload rootfs tarball
         uses: actions/upload-artifact@v4
         with:
-          name: mssql-yum-cache
-          path: ./yum-rpm
+          name: ubuntu-rootfs
+          path: /tmp/ubuntu-rootfs.tar.gz
 
-      - name: Clean Up
-        run: |
-          docker stop mssql-rocky
-          docker rm mssql-rocky
