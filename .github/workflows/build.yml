@@ -43,7 +43,7 @@ jobs:
         mkdir build
         cd build
         cmake -G "Visual Studio 16 2019" -A x64 ..
-        cmake --build . --config Release
+        cmake --build .. --config Release
 
     # Step 6: Package the output artifacts (optional)
     - name: Save build artifacts
