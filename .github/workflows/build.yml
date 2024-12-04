@@ -17,24 +17,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    # Step 2: Set up CMake and Visual Studio
-    - name: Set up CMake
-      uses: actions/setup-cmake@v2
-      with:
-        cmake-version: '3.21.1'  # Specify a CMake version (if needed)
+    # Step 2: Install CMake and other dependencies
+    - name: Install CMake
+      run: |
+        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
 
-    - name: Set up Visual Studio
-      uses: microsoft/setup-msbuild@v1.0.2
-      with:
-        vs-version: '16.0'  # Set Visual Studio version
+    - name: Install Visual Studio Build Tools
+      run: |
+        choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --quiet"
 
-    # Step 3: Install dependencies (if needed)
-    - name: Install dependencies
+    # Step 3: Install additional dependencies (make and 7zip)
+    - name: Install make and 7zip
       run: |
         choco install make
         choco install 7zip
 
-    # Step 4: Clone the HYPRE repository
+    # Step 4: Clone HYPRE repository
     - name: Clone HYPRE repository
       run: git clone https://github.com/LLNL/hypre.git hypre
 
@@ -53,5 +51,3 @@ jobs:
       with:
         name: hypre-build
         path: hypre/build/Release/
-
-
