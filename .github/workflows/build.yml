@@ -34,7 +34,7 @@ jobs:
 
     # Step 4: Clone HYPRE repository
     - name: Clone HYPRE repository
-      run: git clone https://github.com/LLNL/hypre.git hypre
+      run: git clone https://github.com/LLNL/hypre.git
 
     # Step 5: Configure and build HYPRE
     - name: Configure and build HYPRE
