@@ -1,38 +1,57 @@
-name: Generate Ubuntu 20.04 Rootfs
+name: Build HYPRE on Windows
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-
+    runs-on: windows-latest
+    
     steps:
-      # Step 1: Checkout repository
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    # Step 1: Checkout the repository
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      # Step 2: Install dependencies for debootstrap
-      - name: Install debootstrap
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y debootstrap
-      # Step 3: Create the Ubuntu 22.04 root filesystem using debootstrap
-      - name: Create Ubuntu 22.04 root filesystem
-        run: |
-          sudo mkdir base
-          sudo debootstrap --arch=amd64 jammy base http://archive.ubuntu.com/ubuntu/
-      # Step 4: Compress the generated rootfs into a tarball
-      - name: Compress root filesystem
-        run: |
-          cd base
-          sudo tar cJf ../ubuntu-rootfs.tar.xz *
-      # Step 5: Upload the rootfs tarball as an artifact
-      - name: Upload rootfs tarball
-        uses: actions/upload-artifact@v4
-        with:
-          name: ubuntu-rootfs
-          path: ubuntu-rootfs.tar.xz
+    # Step 2: Set up CMake and Visual Studio
+    - name: Set up CMake
+      uses: actions/setup-cmake@v2
+      with:
+        cmake-version: '3.21.1'  # Specify a CMake version (if needed)
+
+    - name: Set up Visual Studio
+      uses: microsoft/setup-msbuild@v1.0.2
+      with:
+        vs-version: '16.0'  # Set Visual Studio version
+
+    # Step 3: Install dependencies (if needed)
+    - name: Install dependencies
+      run: |
+        choco install make
+        choco install 7zip
+
+    # Step 4: Clone the HYPRE repository
+    - name: Clone HYPRE repository
+      run: git clone https://github.com/LLNL/hypre.git hypre
+
+    # Step 5: Configure and build HYPRE
+    - name: Configure and build HYPRE
+      run: |
+        cd hypre
+        mkdir build
+        cd build
+        cmake -G "Visual Studio 16 2019" -A x64 ..
+        cmake --build . --config Release
+
+    # Step 6: Package the output artifacts (optional)
+    - name: Save build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: hypre-build
+        path: hypre/build/Release/
+
 
