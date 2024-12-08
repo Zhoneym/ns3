@@ -1,53 +1,33 @@
-name: Build HYPRE on Windows
+name: Download and Package Docker Image
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
-  build:
-    runs-on: windows-latest
-    
+  build-and-save:
+    runs-on: ubuntu-latest
+
     steps:
-    # Step 1: Checkout the repository
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    # Step 2: Install CMake and other dependencies
-    - name: Install CMake
-      run: |
-        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
-
-    - name: Install Visual Studio Build Tools
-      run: |
-        choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --quiet"
-
-    # Step 3: Install additional dependencies (make and 7zip)
-    - name: Install make and 7zip
-      run: |
-        choco install make
-        choco install 7zip
-
-    # Step 4: Clone HYPRE repository
-    - name: Clone HYPRE repository
-      run: git clone https://github.com/LLNL/hypre.git
-
-    # Step 5: Configure and build HYPRE
-    - name: Configure and build HYPRE
-      run: |
-        cd hypre
-        mkdir build
-        cd build
-        cmake -G "Visual Studio 16 2019" -A x64 ..
-        cmake --build .. --config Release
-
-    # Step 6: Package the output artifacts (optional)
-    - name: Save build artifacts
-      uses: actions/upload-artifact@v4
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
       with:
-        name: hypre-build
-        path: hypre/build/Release/
+        platforms: arm64
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Pull existing Docker image
+      run: docker pull --platform linux/amd64 geniderasmusmc/de-goulash:1
+
+    - name: Save Docker image as tar
+      run: docker save geniderasmusmc/de-goulash:1 -o de-goulash.tar
+
+    - name: Upload tar to GitHub Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: arm64-ns3-image
+        path: de-goulash.tar
+
+
