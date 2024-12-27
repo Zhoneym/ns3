@@ -35,9 +35,7 @@ jobs:
 
     - name: Package OpenSSH
       run: |
-        cd openssh-9.8p1
-        make install DESTDIR=$GITHUB_WORKSPACE/openssh-package
-        tar -czf openssh-9.8p1-package.tar.gz -C $GITHUB_WORKSPACE/openssh-package .
+        tar -czf openssh-9.8p1-package.tar.gz -C $GITHUB_WORKSPACE/openssh-9.8p1
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
