@@ -1,23 +1,46 @@
-name: Download and Package Docker Image
+name: Build and Package OpenSSH
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build-and-save:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-20.04
+
     steps:
-    - name: Pull existing Docker image
-      run: docker pull --platform linux/amd64 nginx/nginx:latest
-    - name: Save Docker image as tar
-      run: docker save nginx/nginx:latest -o nginx.tar
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-    - name: Upload tar to GitHub Artifacts
-      uses: actions/upload-artifact@v3
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential zlib1g-dev libssl-dev libpam0g-dev libselinux1-dev
+
+    - name: Download OpenSSH source
+      run: |
+        wget https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-9.8p1.tar.gz
+        tar -xzf openssh-9.8p1.tar.gz
+        cd openssh-9.8p1
+
+    - name: Configure and compile OpenSSH
+      run: |
+        cd openssh-9.8p1
+        ./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam --with-selinux
+        make
+
+    - name: Package OpenSSH
+      run: |
+        cd openssh-9.8p1
+        make install DESTDIR=$GITHUB_WORKSPACE/openssh-package
+        tar -czf openssh-9.8p1-package.tar.gz -C $GITHUB_WORKSPACE/openssh-package .
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: arm64-ns3-image
-        path: nginx.tar
-
-
+        name: openssh-9.8p1-package
+        path: openssh-9.8p1-package.tar.gz
