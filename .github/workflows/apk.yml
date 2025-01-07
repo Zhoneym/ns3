@@ -17,7 +17,11 @@ jobs:
       uses: actions/checkout@v3  # 检出代码
 
     - name: Set up GCC
-      run: sudo apt-get install -y build-essential wine-dev  # 安装编译工具
+      run: |
+          sudo apt-get install -y build-essential
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository ppa:ubuntu-wine/ppa -y
+          sudo apt-get install -y wine64 wine-dev
 
     - name: Compile C code
       run: |
