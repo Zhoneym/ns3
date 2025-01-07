@@ -1,0 +1,47 @@
+name: Build torzu APK
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Job 1: Setup environment for torzu build
+  setup_torzu_env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Install dependencies for torzu
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sdkmanager openjdk-17-jdk build-essential curl git pkg-config glslang-tools zip
+          sudo sdkmanager "ndk;26.3.11579264" "platforms;android-34" "build-tools;34.0.0" "cmake;3.22.1" "platform-tools;34.0.5"
+          sudo update-alternatives --config java # Select Java 17 if needed
+      
+  # Job 2: Clone torzu repository and build APK
+  clone_and_build_torzu_apk:
+    needs: setup_torzu_env
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Clone torzu repository
+        run: |
+          git clone --depth 1 --recursive https://notabug.org/litucks/torzu.git
+          cd torzu
+
+      - name: Build Yuzu APK
+        run: |
+          cd torzu/src/android
+          ./gradlew assembleRelease
+
+      - name: Upload torzu APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: yuzu-apk
+          path: torzu/src/android/app/build/outputs/apk/mainline/release/app-mainline-release.apk
