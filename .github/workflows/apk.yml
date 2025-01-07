@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies for torzu
         run: |
           sudo apt-get update
-          sudo apt-get install -y sdkmanager openjdk-17-jdk build-essential curl git pkg-config glslang-tools zip
+          sudo apt-get install -y sdkmanager google-android-cmdline-tools-13.0-installer openjdk-17-jdk build-essential curl git pkg-config glslang-tools zip
           sudo sdkmanager "ndk;26.3.11579264" "platforms;android-34" "build-tools;34.0.0" "cmake;3.22.1" "platform-tools;34.0.5"
           sudo update-alternatives --config java # Select Java 17 if needed
       
