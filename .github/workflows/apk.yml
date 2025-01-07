@@ -1,47 +1,32 @@
-name: Build torzu APK
+name: Build and Run C Code
+
 on:
   push:
     branches:
-      - main
+      - main  # 当推送到 main 分支时触发
   pull_request:
     branches:
-      - main
+      - main  # 当 PR 被提交到 main 分支时触发
 
 jobs:
-  # Job 1: Setup environment for torzu build
-  setup_torzu_env:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      
-      - name: Install dependencies for torzu
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y sdkmanager google-android-cmdline-tools-13.0-installer openjdk-17-jdk build-essential curl git pkg-config glslang-tools zip
-          sudo sdkmanager "ndk;26.3.11579264" "platforms;android-34" "build-tools;34.0.0" "cmake;3.22.1" "platform-tools;34.0.5"
-          sudo update-alternatives --config java # Select Java 17 if needed
-      
-  # Job 2: Clone torzu repository and build APK
-  clone_and_build_torzu_apk:
-    needs: setup_torzu_env
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      
-      - name: Clone torzu repository
-        run: |
-          git clone --depth 1 --recursive https://notabug.org/litucks/torzu.git
-          cd torzu
+  build:
+    runs-on: ubuntu-latest  # 使用最新的 Ubuntu 环境
 
-      - name: Build Yuzu APK
-        run: |
-          cd torzu/src/android
-          ./gradlew assembleRelease
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v3  # 检出代码
 
-      - name: Upload torzu APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: yuzu-apk
-          path: torzu/src/android/app/build/outputs/apk/mainline/release/app-mainline-release.apk
+    - name: Set up GCC
+      run: sudo apt-get install -y build-essential  # 安装编译工具
+
+    - name: Compile C code
+      run: |
+        gcc -o my_program main.c  # 编译 C 程序
+
+    - name: Run the program
+      run: |
+        ./my_program  # 运行编译后的程序
+
+    - name: Print output
+      run: |
+        cat my_program.log  # 打印日志（如果有输出）
