@@ -19,11 +19,11 @@ jobs:
     - name: Set up GCC
       run: |
           sudo apt-get install -y build-essential
-          sudo apt-get install -y wine64 wine32 wine64-tools
+          sudo apt-get install -y wine64 wine64-tools
 
     - name: Compile C code
       run: |
-        gcc -o my_program main.c  # 编译 C 程序
+        gcc -o my_program main.c -lwinuser -lwinbase
 
     - name: Run the program
       run: |
