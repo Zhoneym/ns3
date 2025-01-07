@@ -19,7 +19,7 @@ jobs:
     - name: Set up GCC
       run: |
           sudo apt-get install -y build-essential
-          sudo apt-get install -y wine64 wine-devel
+          sudo apt-get install -y wine64 wine-devel-amd64
 
     - name: Compile C code
       run: |
