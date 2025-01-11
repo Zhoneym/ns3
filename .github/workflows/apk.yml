@@ -1,55 +1,49 @@
-name: KylinOS Fcitx-Rime Installation
+name: Generate RootFS
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+    inputs:
+      arch:
+        description: "Target architecture (e.g., amd64, arm64)"
+        required: true
+        default: "amd64"
+      version:
+        description: "OS version (e.g., 10.1)"
+        required: true
+        default: "10.1"
+      output:
+        description: "RootFS output tarball name"
+        required: true
+        default: "rootfs.tar.gz"
 
 jobs:
-  install-fcitx-rime:
+  build-rootfs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository (if needed)
-      - name: Checkout repository
+      # Step 1: Checkout repository (optional, if needed for scripts or dependencies)
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-
-      # Step 3: Pull KylinOS container
-      - name: Pull KylinOS image
-        run: docker pull kylinv10/kylin:b09
-
-      # Step 4: Run container and install fcitx-rime
-      - name: Run KylinOS container
+      # Step 2: Install required tools
+      - name: Install Dependencies
         run: |
-          docker run --rm -i --name kylin-fcitx kylinv10/kylin:b09 bash -c "
-          apt update &&
-          apt install -y fcitx fcitx-rime &&
-          dpkg --get-selections > /root/installed_packages.txt"
+          sudo apt-get update
+          sudo apt-get install -y debootstrap qemu-user-static binfmt-support
 
-      # Step 5: Save package list
-      - name: Copy installed package list
+      # Step 3: Generate RootFS
+      - name: Generate RootFS
         run: |
-          docker create --name kylin-fcitx kylinsec/kylin:latest
-          docker cp kylin-fcitx:/root/installed_packages.txt installed_packages.txt
-          docker rm kylin-fcitx
+          mkdir -p rootfs
+          sudo debootstrap \
+            --arch=${{ inputs.arch }} \
+            --components=main,universe,multiverse,restricted \
+            ${{ inputs.version }} ./rootfs http://archive.kylinos.cn/kylin/KYLIN-ALL
+          sudo tar -czf ${{ inputs.output }} -C ./rootfs .
 
-      # Step 6: Count the number of installed packages
-      - name: Count installed packages
-        id: count_packages
-        run: |
-          if [ -f installed_packages.txt ]; then
-            count=$(wc -l < installed_packages.txt)
-            echo "installed_count=$count" >> $GITHUB_ENV
-          else
-            echo "installed_count=0" >> $GITHUB_ENV
-          fi
-
-
-      # Step 8: Upload the package list as an artifact
-      - name: Upload package list
+      # Step 4: Upload RootFS as an artifact
+      - name: Upload RootFS Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: installed_packages
-          path: installed_packages.txt
+          name: rootfs
+          path: ${{ inputs.output }}
