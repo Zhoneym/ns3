@@ -1,34 +1,63 @@
-name: Build and Run C Code
+name: KylinOS Fcitx-Rime Installation
 
 on:
   push:
     branches:
-      - main  # 当推送到 main 分支时触发
-  pull_request:
-    branches:
-      - main  # 当 PR 被提交到 main 分支时触发
+      - main
+  workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest  # 使用最新的 Ubuntu 环境
+  install-fcitx-rime:
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout the repository
-      uses: actions/checkout@v3  # 检出代码
+      # Step 1: Checkout the repository (if needed)
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up GCC
-      run: |
-          sudo apt-get install -y build-essential
-          sudo apt-get install -y wine64 wine64-tools
+      # Step 2: Set up Docker
+      - name: Set up Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
 
-    - name: Compile C code
-      run: |
-        gcc -o my_program main.c -lwinuser -lwinbase
+      # Step 3: Pull KylinOS container
+      - name: Pull KylinOS image
+        run: docker pull kylinsec/kylin:latest
 
-    - name: Run the program
-      run: |
-        ./my_program  # 运行编译后的程序
+      # Step 4: Run container and install fcitx-rime
+      - name: Run KylinOS container
+        run: |
+          docker run --rm -i --name kylin-fcitx kylinsec/kylin:latest bash -c "
+          apt update &&
+          apt install -y fcitx fcitx-rime &&
+          dpkg --get-selections > /root/installed_packages.txt"
 
-    - name: Print output
-      run: |
-        cat my_program.log  # 打印日志（如果有输出）
+      # Step 5: Save package list
+      - name: Copy installed package list
+        run: |
+          docker create --name kylin-fcitx kylinsec/kylin:latest
+          docker cp kylin-fcitx:/root/installed_packages.txt installed_packages.txt
+          docker rm kylin-fcitx
+
+      # Step 6: Count the number of installed packages
+      - name: Count installed packages
+        id: count_packages
+        run: |
+          if [ -f installed_packages.txt ]; then
+            count=$(wc -l < installed_packages.txt)
+            echo "installed_count=$count" >> $GITHUB_ENV
+          else
+            echo "installed_count=0" >> $GITHUB_ENV
+          fi
+
+      # Step 7: Output the number of installed packages
+      - name: Display installed package count
+        run: echo "Number of installed packages: ${{ env.installed_count }}"
+
+      # Step 8: Upload the package list as an artifact
+      - name: Upload package list
+        uses: actions/upload-artifact@v3
+        with:
+          name: installed_packages
+          path: installed_packages.txt
