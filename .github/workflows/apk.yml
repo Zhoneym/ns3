@@ -51,13 +51,10 @@ jobs:
             echo "installed_count=0" >> $GITHUB_ENV
           fi
 
-      # Step 7: Output the number of installed packages
-      - name: Display installed package count
-        run: echo "Number of installed packages: ${{ env.installed_count }}"
 
       # Step 8: Upload the package list as an artifact
       - name: Upload package list
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: installed_packages
           path: installed_packages.txt
