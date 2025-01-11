@@ -18,12 +18,12 @@ jobs:
 
       # Step 3: Pull KylinOS container
       - name: Pull KylinOS image
-        run: docker pull kylinsec/kylin:latest
+        run: docker pull kylinv10/kylin:b09
 
       # Step 4: Run container and install fcitx-rime
       - name: Run KylinOS container
         run: |
-          docker run --rm -i --name kylin-fcitx kylinsec/kylin:latest bash -c "
+          docker run --rm -i --name kylin-fcitx kylinv10/kylin:b09 bash -c "
           apt update &&
           apt install -y fcitx fcitx-rime &&
           dpkg --get-selections > /root/installed_packages.txt"
