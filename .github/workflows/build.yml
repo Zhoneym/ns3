@@ -20,7 +20,7 @@ jobs:
 
       - name: Inspect Docker image metadata
         run: |
-          docker pull ghcr.io/ggerganov/llama.cpp:server-cuda--b1-64c6af3  # 查询并输出镜像元数据
+          docker inspect ghcr.io/ggerganov/llama.cpp:server-cuda--b1-64c6af3  # 查询并输出镜像元数据
         id: inspect_output
 
       - name: Output image metadata
