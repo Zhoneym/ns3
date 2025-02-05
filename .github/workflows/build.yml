@@ -16,11 +16,11 @@ jobs:
 
       - name: Pull Docker image
         run: |
-          docker pull ghcr.io/ggerganov/llama.cpp:server-cuda-b3998  # 拉取 Docker 镜像
+          docker pull ghcr.io/ggerganov/llama.cpp:server-cuda-ad76569f8e78ab6ca921bda25cef25a157361719  # 拉取 Docker 镜像
 
       - name: Inspect Docker image metadata
         run: |
-          docker inspect ghcr.io/ggerganov/llama.cpp:server-cuda-b3998  # 查询并输出镜像元数据
+          docker inspect ghcr.io/ggerganov/llama.cpp:server-cuda-ad76569f8e78ab6ca921bda25cef25a157361719  # 查询并输出镜像元数据
         id: inspect_output
 
       - name: Output image metadata
