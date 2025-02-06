@@ -1,29 +1,32 @@
-name: Query Docker Image Metadata
+name: Download Docker Image as Offline Package
 
 on:
-  workflow_dispatch:  # 允许手动触发工作流
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
-  query-metadata:
-    runs-on: ubuntu-latest  # 使用 Ubuntu 最新的运行环境
+  pull-and-save-image:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2  # 检出仓库代码（如果需要用到仓库中的某些内容）
+        uses: actions/checkout@v2
 
       - name: Set up Docker
-        uses: docker/setup-buildx-action@v2  # 设置 Docker 构建环境
+        uses: docker/setup-buildx-action@v2
 
-      - name: Pull Docker image
+      - name: Pull ARM64 Docker Image
         run: |
-          docker pull ghcr.io/ggerganov/llama.cpp:server-cuda-ad76569f8e78ab6ca921bda25cef25a157361719  # 拉取 Docker 镜像
+          docker pull --platform linux/arm64 hagb/docker-easyconnect:7.6.7
 
-      - name: Inspect Docker image metadata
+      - name: Save Docker Image as tar
         run: |
-          docker inspect ghcr.io/ggerganov/llama.cpp:server-cuda-ad76569f8e78ab6ca921bda25cef25a157361719  # 查询并输出镜像元数据
-        id: inspect_output
+          docker save --output=hagb-docker-easyconnect-7.6.7-arm64.tar hagb/docker-easyconnect:7.6.7
 
-      - name: Output image metadata
-        run: |
-          echo "Docker Image Metadata:"
-          echo "${{ steps.inspect_output.outputs }}"
+      - name: Upload Docker Image tar as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hagb-docker-easyconnect-7.6.7-arm64
+          path: hagb-docker-easyconnect-7.6.7-arm64.tar
