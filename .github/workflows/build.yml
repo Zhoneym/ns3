@@ -23,7 +23,7 @@ jobs:
 
       - name: Save Docker Image as tar
         run: |
-          docker save --output=hagb-docker-easyconnect-7.6.7-arm64.tar hagb/docker-easyconnect:7.6.7
+          docker save --output=hagb-docker-easyconnect-7.6.3-arm64.tar hagb/docker-easyconnect:7.6.3
 
       - name: Upload Docker Image tar as artifact
         uses: actions/upload-artifact@v4
