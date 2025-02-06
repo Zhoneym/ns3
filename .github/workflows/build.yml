@@ -19,7 +19,7 @@ jobs:
 
       - name: Pull ARM64 Docker Image
         run: |
-          docker pull --platform linux/arm64 hagb/docker-easyconnect:7.6.7
+          docker pull --platform linux/arm64 hagb/docker-easyconnect:7.6.3
 
       - name: Save Docker Image as tar
         run: |
