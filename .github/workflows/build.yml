@@ -28,5 +28,5 @@ jobs:
       - name: Upload Docker Image tar as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: hagb-docker-easyconnect-7.6.7-arm64
-          path: hagb-docker-easyconnect-7.6.7-arm64.tar
+          name: hagb-docker-easyconnect-7.6.3-arm64
+          path: hagb-docker-easyconnect-7.6.3-arm64.tar
